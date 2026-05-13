@@ -35,14 +35,70 @@ REGRAS = {
     "Pro":      ["manual", "iso", "exposicao", "profissional"],
 }
 
+# Dicionario de traducao simulada: palavra em ingles -> portugues
+# Em producao: substituir pelo retorno da Google Translate API
+TRADUCOES = {
+    "hello":        "ola",
+    "world":        "mundo",
+    "camera":       "camera",
+    "photo":        "foto",
+    "picture":      "imagem",
+    "night":        "noite",
+    "portrait":     "retrato",
+    "document":     "documento",
+    "translate":    "traduzir",
+    "settings":     "configuracoes",
+    "flash":        "flash",
+    "zoom":         "zoom",
+    "capture":      "capturar",
+    "mode":         "modo",
+    "filter":       "filtro",
+    "brightness":   "brilho",
+    "contrast":     "contraste",
+    "focus":        "foco",
+    "video":        "video",
+    "record":       "gravar",
+    "play":         "reproduzir",
+    "stop":         "parar",
+    "save":         "salvar",
+    "delete":       "deletar",
+    "share":        "compartilhar",
+    "gallery":      "galeria",
+    "album":        "album",
+    "smile":        "sorria",
+    "ready":        "pronto",
+    "slow":         "lento",
+    "fast":         "rapido",
+    "wide":         "amplo",
+    "close":        "perto",
+    "open":         "aberto",
+    "menu":         "menu",
+    "back":         "voltar",
+    "next":         "proximo",
+    "done":         "concluido",
+    "cancel":       "cancelar",
+    "confirm":      "confirmar",
+    "error":        "erro",
+    "success":      "sucesso",
+    "loading":      "carregando",
+    "processing":   "processando",
+}
+
+# Idiomas disponiveis para o modo traducao
+IDIOMAS = [
+    "Ingles  -> Portugues",
+    "Espanhol -> Portugues (simulado)",
+    "Frances -> Portugues (simulado)",
+]
+
 # Historico de capturas (lista de dicionarios)
 historico = []
 
+# Historico de traducoes realizadas (lista de dicionarios)
+traducoes_historico = []
+
 # Aulas registradas (lista de dicionarios)
 aulas = []
-
-# Hora simulada do dia (0-23) -- troque para testar periodos
-hora_sistema = 10
 
 
 # -- Utilitarios ----------------------------------------------
@@ -60,17 +116,6 @@ def cabecalho(titulo):
 
 def pausar():
     input("\n  [ Enter para continuar ] ")
-
-
-def periodo_do_dia():
-    if 5 <= hora_sistema < 12:
-        return "manha"
-    elif 12 <= hora_sistema < 18:
-        return "tarde"
-    elif 18 <= hora_sistema < 23:
-        return "noite"
-    else:
-        return "madrugada"
 
 
 def barra_progresso(valor, maximo, largura=20):
@@ -126,16 +171,14 @@ def registrar_captura(modo, descricao):
         "id":        len(historico) + 1,
         "modo":      modo,
         "descricao": descricao,
-        "periodo":   periodo_do_dia()
     }
     historico.append(captura)
 
     print()
     print("  >>> Captura #" + str(captura["id"]) + " registrada!")
-    print("      Modo   : " + modo)
-    print("      Periodo: " + periodo_do_dia())
+    print("      Modo : " + modo)
     if descricao != "":
-        print("      Cena   : " + descricao)
+        print("      Cena : " + descricao)
 
 
 def funcionalidade_detectar_cena():
@@ -209,122 +252,134 @@ def funcionalidade_detectar_cena():
     pausar()
 
 
-# -- FUNCIONALIDADE 2: Historico e sugestao personalizada -----
+# -- FUNCIONALIDADE 2: Traducao de texto ----------------------
 
-def modo_favorito_periodo(periodo):
-    # Varre historico e retorna modo mais usado no periodo
-    contagem = {}
+def traduzir_texto(texto):
+    # Traduz palavra por palavra usando o dicionario TRADUCOES
+    # Palavras nao encontradas sao mantidas no original com marcacao
+    palavras        = texto.lower().split()
+    palavras_traduz = []
+    nao_encontradas = []
 
-    for captura in historico:
-        if captura["periodo"] == periodo:
-            modo = captura["modo"]
-            if modo in contagem:
-                contagem[modo] = contagem[modo] + 1
-            else:
-                contagem[modo] = 1
+    for palavra in palavras:
+        # Remove pontuacao basica para buscar no dicionario
+        palavra_limpa = palavra.replace(",", "").replace(".", "").replace("!", "").replace("?", "")
 
-    if len(contagem) == 0:
-        return ""
-
-    melhor = ""
-    maior  = 0
-    for modo in contagem:
-        if contagem[modo] > maior:
-            maior  = contagem[modo]
-            melhor = modo
-
-    return melhor
-
-
-def sugestao_automatica():
-    # Retorna sugestao se historico tiver 3+ capturas
-    if len(historico) < 3:
-        return ""
-    return modo_favorito_periodo(periodo_do_dia())
-
-
-def funcionalidade_historico():
-    cabecalho("FUNC 2 -- Historico e Perfil de Uso")
-
-    if len(historico) == 0:
-        print("\n  Nenhuma captura registrada ainda.")
-        print("  Use a Funcionalidade 1 para comecar!")
-        pausar()
-        return
-
-    total = len(historico)
-    print()
-    print("  Total de capturas : " + str(total))
-    print("  Periodo atual     : " + periodo_do_dia().capitalize())
-
-    # Conta quantas vezes cada modo foi usado
-    contagem = {}
-    for captura in historico:
-        modo = captura["modo"]
-        if modo in contagem:
-            contagem[modo] = contagem[modo] + 1
+        if palavra_limpa in TRADUCOES:
+            palavras_traduz.append(TRADUCOES[palavra_limpa])
         else:
-            contagem[modo] = 1
+            palavras_traduz.append("[" + palavra_limpa + "?]")
+            nao_encontradas.append(palavra_limpa)
 
-    # Encontra modo favorito
-    favorito = ""
-    maior    = 0
-    for modo in contagem:
-        if contagem[modo] > maior:
-            maior    = contagem[modo]
-            favorito = modo
+    resultado = " ".join(palavras_traduz)
+    return [resultado, nao_encontradas]
 
-    # Tabela de uso por modo com barra proporcional
+
+def funcionalidade_traducao():
+    cabecalho("FUNC 2 -- Traducao de Texto (Modo Camera)")
+
     print()
-    print("  MODO           USOS  PROPORCAO")
-    linha("-", 46)
-    for modo in contagem:
-        usos    = contagem[modo]
-        barra   = barra_progresso(usos, total)
-        estrela = " *" if modo == favorito else ""
-        print("  " + modo.ljust(14) + str(usos).rjust(4) + "  " + barra + estrela)
-
-    print("\n  * = modo favorito")
-
-    # Padroes por periodo do dia
-    periodos = ["manha", "tarde", "noite", "madrugada"]
+    print("  Simula o modo de traducao da camera JoviLens.")
+    print("  Voce digita o texto capturado (em ingles),")
+    print("  e o sistema retorna a traducao para portugues.")
     print()
-    print("  PERIODO       MODO MAIS USADO")
-    linha("-", 40)
-    for p in periodos:
-        melhor = modo_favorito_periodo(p)
-        if melhor == "":
-            melhor = "(sem dados)"
-        print("  " + p.capitalize().ljust(13) + melhor)
 
-    # Sugestao automatica baseada no historico
-    sugestao = sugestao_automatica()
-    if sugestao != "":
+    # Escolha do idioma de origem
+    print("  Idiomas disponiveis:")
+    for i in range(len(IDIOMAS)):
+        print("    " + str(i + 1) + ". " + IDIOMAS[i])
+
+    idioma_escolhido = ""
+    while idioma_escolhido == "":
+        print()
+        escolha = input("  Numero do idioma: ").strip()
+        if escolha.isdigit():
+            numero = int(escolha)
+            if 1 <= numero <= len(IDIOMAS):
+                idioma_escolhido = IDIOMAS[numero - 1]
+            else:
+                print("  AVISO: Numero fora do intervalo.")
+        else:
+            print("  AVISO: Digite um numero valido.")
+
+    print()
+    print("  Idioma selecionado: " + idioma_escolhido)
+
+    # Loop de traducao -- usuario pode traduzir varias frases
+    contador = 1
+    while True:
         print()
         linha("-", 46)
-        print("  SUGESTAO: Voce costuma usar [" + sugestao + "] agora.")
+        texto = input("  Texto " + str(contador) + " (ou 'sair'): ").strip()
+
+        if texto.lower() == "sair" or texto.lower() == "s":
+            break
+
+        if texto == "":
+            print("  AVISO: Texto vazio. Tente novamente.")
+            continue
+
+        if len(texto) < 2:
+            print("  AVISO: Texto muito curto.")
+            continue
+
+        # Realiza a traducao
+        resultado     = traduzir_texto(texto)
+        traducao      = resultado[0]
+        nao_traduzidas = resultado[1]
+
+        # Calcula taxa de sucesso da traducao
+        total_palavras    = len(texto.split())
+        palavras_ok       = total_palavras - len(nao_traduzidas)
+        barra             = barra_progresso(palavras_ok, total_palavras)
+
         print()
-        usar = input("  Registrar captura em modo " + sugestao + "? (s/n): ").strip().lower()
-        if usar == "s":
-            registrar_captura(sugestao, "Sugestao automatica - " + periodo_do_dia())
+        print("  Original  : " + texto)
+        print("  Traducao  : " + traducao)
+        print("  Precisao  : " + barra)
 
-    # Ultimas 5 capturas
-    inicio = len(historico) - 5
-    if inicio < 0:
-        inicio = 0
+        if len(nao_traduzidas) > 0:
+            print("  Sem match : " + ", ".join(nao_traduzidas))
 
-    print()
-    print("  ULTIMAS CAPTURAS:")
-    linha("-", 46)
-    for i in range(inicio, len(historico)):
-        c    = historico[i]
-        desc = c["descricao"]
-        if len(desc) > 25:
-            desc = desc[:25] + "..."
-        print("  #" + str(c["id"]).ljust(4) +
-              c["modo"].ljust(12) +
-              c["periodo"] + "  " +
-              desc)
+        # Salva no historico de traducoes
+        registro = {
+            "id":      len(traducoes_historico) + 1,
+            "idioma":  idioma_escolhido,
+            "original": texto,
+            "traducao": traducao,
+        }
+        traducoes_historico.append(registro)
+        print()
+        print("  >>> Traducao #" + str(registro["id"]) + " salva no historico.")
+
+        contador = contador + 1
+
+    # Exibe resumo das traducoes realizadas na sessao
+    realizadas = contador - 1
+    if realizadas > 0:
+        print()
+        linha("=", 46)
+        print("  SESSAO CONCLUIDA")
+        linha("=", 46)
+        print("  Traducoes realizadas : " + str(realizadas))
+        print("  Total no historico   : " + str(len(traducoes_historico)))
+
+        print()
+        ver = input("  Ver historico completo de traducoes? (s/n): ").strip().lower()
+        if ver == "s":
+            print()
+            print("  ID   ORIGINAL                  TRADUCAO")
+            linha("-", 60)
+            for t in traducoes_historico:
+                orig  = t["original"]
+                trad  = t["traducao"]
+                if len(orig) > 22:
+                    orig = orig[:22] + "..."
+                if len(trad) > 22:
+                    trad = trad[:22] + "..."
+                print("  " + str(t["id"]).ljust(4) +
+                      orig.ljust(26) +
+                      trad)
 
     pausar()
 
@@ -432,7 +487,6 @@ def funcionalidade_modo_aula():
         "id":         len(aulas) + 1,
         "disciplina": disciplina,
         "professor":  professor,
-        "periodo":    periodo_do_dia(),
         "capturas":   capturas_aula,
         "total":      len(capturas_aula)
     }
@@ -464,7 +518,6 @@ def funcionalidade_modo_aula():
         conteudo += "=" * 50 + "\n"
         conteudo += "Disciplina : " + disciplina + "\n"
         conteudo += "Professor  : " + professor + "\n"
-        conteudo += "Periodo    : " + periodo_do_dia() + "\n"
         conteudo += "Capturas   : " + str(len(capturas_aula)) + "\n"
         conteudo += "-" * 50 + "\n"
 
@@ -503,20 +556,19 @@ def exibir_menu():
     print("  |      JoviLens -- IA de Camera              |")
     print("  |      FIAP x JOVI Challenge 2026            |")
     print("  +--------------------------------------------+")
-    print("  |  Periodo : " + periodo_do_dia().capitalize().ljust(33) + "|")
-
-    sugestao = sugestao_automatica()
-    if sugestao != "":
-        print("  |  Sugestao: " + sugestao.ljust(33) + "|")
 
     if len(historico) > 0:
         texto = "Capturas: " + str(len(historico))
         print("  |  " + texto.ljust(43) + "|")
 
+    if len(traducoes_historico) > 0:
+        texto = "Traducoes: " + str(len(traducoes_historico))
+        print("  |  " + texto.ljust(43) + "|")
+
     print("  +--------------------------------------------+")
     print("  |                                            |")
     print("  |   1 - Detectar modo por cena               |")
-    print("  |   2 - Historico e perfil de uso            |")
+    print("  |   2 - Traducao de texto                    |")
     print("  |   3 - Modo Aula                            |")
     print("  |                                            |")
     print("  |   0 - Sair                                 |")
@@ -533,13 +585,14 @@ def main():
         if opcao == "1":
             funcionalidade_detectar_cena()
         elif opcao == "2":
-            funcionalidade_historico()
+            funcionalidade_traducao()
         elif opcao == "3":
             funcionalidade_modo_aula()
         elif opcao == "0":
             print()
             print("  Encerrando JoviLens.")
-            print("  Total de capturas: " + str(len(historico)))
+            print("  Capturas realizadas  : " + str(len(historico)))
+            print("  Traducoes realizadas : " + str(len(traducoes_historico)))
             print()
             break
         else:
