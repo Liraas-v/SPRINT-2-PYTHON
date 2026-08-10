@@ -1,7 +1,5 @@
 <div align="center">
 
-![Header](https://capsule-render.vercel.app/api?type=wave&color=ED1C24&height=130&section=header&text=SPRINT+2+PYTHON&fontSize=36&fontColor=ffffff)
-
 ![FIAP](https://img.shields.io/badge/FIAP-2026-ED1C24?style=flat)
 ![Sprint](https://img.shields.io/badge/Sprint-2-ED1C24?style=flat)
 ![Python](https://img.shields.io/badge/Python-3.x-3776AB?style=flat&logo=python)
@@ -64,9 +62,3 @@ SPRINT-2-PYTHON/
 ```
 
 ---
-
-<div align="center">
-
-![Footer](https://capsule-render.vercel.app/api?type=wave&color=ED1C24&height=80&section=footer)
-
-</div>
