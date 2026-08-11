@@ -44,8 +44,8 @@ Este projeto exercita os seguintes conceitos de Python:
 ## Como Rodar
 
 ```bash
-git clone https://github.com/Liraas-v/SPRINT-2-PYTHON
-cd SPRINT-2-PYTHON
+git clone https://github.com/Liraas-v/JOVI-Lens-PY
+cd JOVI-Lens-PY
 
 python JOVILENS.PY
 ```
@@ -55,7 +55,7 @@ python JOVILENS.PY
 ## Estrutura do Projeto
 
 ```
-SPRINT-2-PYTHON/
+JOVI-Lens-PY/
 ├── JOVILENS.PY          # Script principal — lógica completa da aplicação
 ├── aula_Historia_1.txt  # Exemplo de exportação: aula de História (gerado pelo app)
 └── aula_Quimica_1.txt   # Exemplo de exportação: aula de Química (gerado pelo app)
